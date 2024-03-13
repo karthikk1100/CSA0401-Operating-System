@@ -1,0 +1,72 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_PROCESSES 10
+
+typedef struct {
+    int pid;            // Process ID
+    int arrival_time;   // Arrival time
+    int execution_time; // Execution time
+    int remaining_time; // Remaining execution time
+    int completed;      // Flag to mark if process is completed
+} Process;
+
+int main() {
+    int num_processes;
+    printf("Enter the number of processes: ");
+    scanf("%d", &num_processes);
+
+    if (num_processes <= 0 || num_processes > MAX_PROCESSES) {
+        printf("Invalid number of processes.\n");
+        return 1;
+    }
+
+    Process processes[MAX_PROCESSES];
+
+    // Input process details
+    printf("Enter arrival time and execution time for each process:\n");
+    for (int i = 0; i < num_processes; i++) {
+        printf("Process %d: ", i + 1);
+        scanf("%d %d", &processes[i].arrival_time, &processes[i].execution_time);
+        processes[i].pid = i + 1;
+        processes[i].remaining_time = processes[i].execution_time;
+        processes[i].completed = 0;
+    }
+
+    int current_time = 0;
+    int completed_processes = 0;
+
+    printf("\nExecution Order:\n");
+    while (completed_processes < num_processes) {
+        int shortest_index = -1;
+        int shortest_time = 99999; // A large initial value
+
+        // Find the process with the shortest remaining execution time
+        for (int i = 0; i < num_processes; i++) {
+            if (processes[i].arrival_time <= current_time && !processes[i].completed) {
+                if (processes[i].remaining_time < shortest_time) {
+                    shortest_index = i;
+                    shortest_time = processes[i].remaining_time;
+                }
+            }
+        }
+
+        if (shortest_index == -1) {
+            // No process available to execute, move time forward
+            current_time++;
+        } else {
+            // Execute the shortest remaining time process
+            printf("Time %d: Process %d\n", current_time, processes[shortest_index].pid);
+            processes[shortest_index].remaining_time--;
+            current_time++;
+
+            // Check if the process is completed
+            if (processes[shortest_index].remaining_time == 0) {
+                processes[shortest_index].completed = 1;
+                completed_processes++;
+            }
+        }
+    }
+
+    return 0;
+}
