@@ -1,0 +1,118 @@
+#include <stdio.h>
+
+#define MAX_PROCESSES 5
+#define MAX_RESOURCES 3
+
+int available[MAX_RESOURCES];
+int maximum[MAX_PROCESSES][MAX_RESOURCES];
+int allocation[MAX_PROCESSES][MAX_RESOURCES];
+int need[MAX_PROCESSES][MAX_RESOURCES];
+
+int finish[MAX_PROCESSES];
+
+int request_resource(int process_id, int request[]) {
+    // Step 1: Check if request can be granted immediately
+    for (int i = 0; i < MAX_RESOURCES; i++) {
+        if (request[i] > available[i])
+            return 0; // Not enough available resources
+    }
+
+    // Step 2: Simulate allocation and check for safety
+    for (int i = 0; i < MAX_RESOURCES; i++) {
+        available[i] -= request[i];
+        allocation[process_id][i] += request[i];
+        need[process_id][i] -= request[i];
+    }
+
+    if (is_safe()) {
+        return 1; // Request granted
+    } else {
+        // Step 3: Rollback allocation since it leads to an unsafe state
+        for (int i = 0; i < MAX_RESOURCES; i++) {
+            available[i] += request[i];
+            allocation[process_id][i] -= request[i];
+            need[process_id][i] += request[i];
+        }
+        return 0; // Request denied
+    }
+}
+
+int is_safe() {
+    int work[MAX_RESOURCES];
+    int finish_copy[MAX_PROCESSES];
+
+    for (int i = 0; i < MAX_RESOURCES; i++) {
+        work[i] = available[i];
+    }
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        finish_copy[i] = finish[i];
+    }
+
+    int finished_processes = 0;
+    while (finished_processes < MAX_PROCESSES) {
+        int found = 0;
+        for (int i = 0; i < MAX_PROCESSES; i++) {
+            if (!finish_copy[i]) {
+                int j;
+                for (j = 0; j < MAX_RESOURCES; j++) {
+                    if (need[i][j] > work[j])
+                        break;
+                }
+                if (j == MAX_RESOURCES) {
+                    // Process i can finish
+                    for (int k = 0; k < MAX_RESOURCES; k++) {
+                        work[k] += allocation[i][k];
+                    }
+                    finish_copy[i] = 1;
+                    found = 1;
+                    finished_processes++;
+                }
+            }
+        }
+        if (!found)
+            return 0; // Unsafe state
+    }
+    return 1; // Safe state
+}
+
+int main() {
+    int request[MAX_RESOURCES];
+    int process_id;
+
+    // Initialize available resources
+    printf("Enter available resources:\n");
+    for (int i = 0; i < MAX_RESOURCES; i++) {
+        scanf("%d", &available[i]);
+    }
+
+    // Initialize maximum and allocation matrices
+    printf("Enter maximum and allocation matrices:\n");
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        printf("For process %d:\n", i);
+        for (int j = 0; j < MAX_RESOURCES; j++) {
+            scanf("%d", &maximum[i][j]);
+        }
+        for (int j = 0; j < MAX_RESOURCES; j++) {
+            scanf("%d", &allocation[i][j]);
+            need[i][j] = maximum[i][j] - allocation[i][j];
+        }
+        finish[i] = 0;
+    }
+
+    // Request resources
+    printf("Enter process id (0 to %d): ", MAX_PROCESSES - 1);
+    scanf("%d", &process_id);
+    printf("Enter resource request:\n");
+    for (int i = 0; i < MAX_RESOURCES; i++) {
+        scanf("%d", &request[i]);
+    }
+
+    // Check if request can be granted
+    if (request_resource(process_id, request)) {
+        printf("Request granted. System is in safe state.\n");
+    } else {
+        printf("Request denied. System may lead to deadlock.\n");
+    }
+
+    return 0;
+}
