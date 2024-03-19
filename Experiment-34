@@ -1,0 +1,61 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_RECORDS 100
+
+// Structure to represent a record
+struct Record {
+    int id;
+    char data[100];
+};
+
+// Function to write a record to the file
+void writeRecord(FILE *file, struct Record record) {
+    fwrite(&record, sizeof(struct Record), 1, file);
+}
+
+// Function to read all records from the file
+void readRecords(FILE *file) {
+    struct Record record;
+    fseek(file, 0, SEEK_SET); // Move file pointer to the beginning
+
+    printf("Records in the file:\n");
+    while (fread(&record, sizeof(struct Record), 1, file)) {
+        printf("Record ID: %d, Data: %s\n", record.id, record.data);
+    }
+}
+
+int main() {
+    FILE *file = fopen("file.bin", "wb+"); // Open file for reading and writing in binary mode
+
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return 1;
+    }
+
+    struct Record records[MAX_RECORDS];
+    int num_records;
+
+    printf("Enter the number of records to write: ");
+    scanf("%d", &num_records);
+
+    printf("Enter records:\n");
+    for (int i = 0; i < num_records; i++) {
+        printf("Record %d:\n", i + 1);
+        printf("Enter ID: ");
+        scanf("%d", &records[i].id);
+        printf("Enter data: ");
+        scanf("%s", records[i].data);
+        writeRecord(file, records[i]);
+    }
+
+    printf("\nRecords written to the file.\n");
+
+    printf("\nReading records from the file:\n");
+    readRecords(file);
+
+    fclose(file);
+
+    return 0;
+}
