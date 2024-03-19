@@ -1,0 +1,60 @@
+#include <stdio.h>
+
+#define MAX_FRAMES 3 // Maximum number of frames in memory
+
+int main() {
+    int frames[MAX_FRAMES], pages[MAX_FRAMES], page_count, frame_count;
+    int i, j, hit, fault, index, least_used;
+
+    printf("Enter the number of pages: ");
+    scanf("%d", &page_count);
+
+    printf("Enter the reference string: ");
+    for (i = 0; i < page_count; i++)
+        scanf("%d", &pages[i]);
+
+    frame_count = 0; // Initially, no frames are occupied
+
+    printf("\nLRU Page Replacement\n");
+    printf("Page   Frame     Fault\n");
+
+    fault = 0;
+    for (i = 0; i < page_count; i++) {
+        hit = 0;
+        // Check if the page is already in memory
+        for (j = 0; j < frame_count; j++) {
+            if (frames[j] == pages[i]) {
+                hit = 1;
+                break;
+            }
+        }
+
+        if (!hit) {
+            fault++;
+            if (frame_count < MAX_FRAMES) {
+                frames[frame_count] = pages[i];
+                frame_count++;
+            } else {
+                least_used = 0;
+                index = 0;
+                for (j = 1; j < frame_count; j++) {
+                    if (frames[j] != pages[i]) {
+                        if (frames[j] == pages[i-1])
+                            index = j;
+                        least_used = j;
+                    }
+                }
+                frames[index] = pages[i];
+            }
+        }
+
+        printf("%2d     ", pages[i]);
+        for (j = 0; j < frame_count; j++)
+            printf("%2d ", frames[j]);
+        printf("    %c\n", hit ? ' ' : '*');
+    }
+
+    printf("\nTotal Page Faults = %d\n", fault);
+
+    return 0;
+}
