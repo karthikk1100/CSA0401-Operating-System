@@ -1,0 +1,99 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BLOCK_SIZE 512
+
+// Structure to represent a disk block
+struct DiskBlock {
+    char data[BLOCK_SIZE];
+    struct DiskBlock *next;
+};
+
+// Structure to represent a file
+struct File {
+    int id;
+    struct DiskBlock *first_block;
+    struct DiskBlock *last_block;
+};
+
+// Function to create a new disk block
+struct DiskBlock* createDiskBlock() {
+    struct DiskBlock *block = (struct DiskBlock*)malloc(sizeof(struct DiskBlock));
+    if (block == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    block->next = NULL;
+    return block;
+}
+
+// Function to create a new file
+struct File* createFile(int id) {
+    struct File *file = (struct File*)malloc(sizeof(struct File));
+    if (file == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    file->id = id;
+    file->first_block = NULL;
+    file->last_block = NULL;
+    return file;
+}
+
+// Function to add a block to the end of the file
+void addBlock(struct File *file, struct DiskBlock *block) {
+    if (file->first_block == NULL) {
+        file->first_block = block;
+    } else {
+        file->last_block->next = block;
+    }
+    file->last_block = block;
+}
+
+// Function to display the contents of the file
+void displayFile(struct File *file) {
+    struct DiskBlock *current_block = file->first_block;
+    printf("File ID: %d\n", file->id);
+    printf("Contents:\n");
+    while (current_block != NULL) {
+        printf("%s", current_block->data);
+        current_block = current_block->next;
+    }
+    printf("\n");
+}
+
+// Function to free memory allocated for the file
+void freeFile(struct File *file) {
+    struct DiskBlock *current_block = file->first_block;
+    while (current_block != NULL) {
+        struct DiskBlock *temp = current_block;
+        current_block = current_block->next;
+        free(temp);
+    }
+    free(file);
+}
+
+int main() {
+    struct File *file = createFile(1);
+
+    printf("Enter text to add to the file (enter 'end' to finish):\n");
+    while (1) {
+        char input[BLOCK_SIZE];
+        fgets(input, BLOCK_SIZE, stdin);
+        if (strcmp(input, "end\n") == 0) {
+            break;
+        }
+        struct DiskBlock *block = createDiskBlock();
+        strcpy(block->data, input);
+        addBlock(file, block);
+    }
+
+    printf("\nFile created successfully.\n");
+    printf("\nFile contents:\n");
+    displayFile(file);
+
+    freeFile(file);
+
+    return 0;
+}
