@@ -1,0 +1,42 @@
+#include <stdio.h>
+#include <sys/stat.h>
+
+int main() {
+    // File path to be checked for permissions
+    char *file_path = "example.txt";
+
+    // Structure to hold file information
+    struct stat file_stat;
+
+    // Get file information
+    if (stat(file_path, &file_stat) == 0) {
+        // Print file permissions
+        printf("File Permissions: ");
+
+        // Owner permissions
+        printf((file_stat.st_mode & S_IRUSR) ? "r" : "-");
+        printf((file_stat.st_mode & S_IWUSR) ? "w" : "-");
+        printf((file_stat.st_mode & S_IXUSR) ? "x" : "-");
+
+        // Group permissions
+        printf((file_stat.st_mode & S_IRGRP) ? "r" : "-");
+        printf((file_stat.st_mode & S_IWGRP) ? "w" : "-");
+        printf((file_stat.st_mode & S_IXGRP) ? "x" : "-");
+
+        // Others permissions
+        printf((file_stat.st_mode & S_IROTH) ? "r" : "-");
+        printf((file_stat.st_mode & S_IWOTH) ? "w" : "-");
+        printf((file_stat.st_mode & S_IXOTH) ? "x" : "-");
+
+        printf("\n");
+
+        // Print file owner and group
+        printf("Owner UID: %d\n", file_stat.st_uid);
+        printf("Group GID: %d\n", file_stat.st_gid);
+    } else {
+        // Unable to get file information
+        printf("Error: Unable to get file information.\n");
+    }
+
+    return 0;
+}
